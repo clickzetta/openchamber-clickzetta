@@ -3,14 +3,27 @@ import path from 'path';
 import os from 'os';
 import yaml from 'yaml';
 import { parse as parseJsonc, printParseErrorCode } from 'jsonc-parser';
+// cz_change: global config/agent/command/skill dirs live under clickzetta.
+import { configDir, homeConfigDir, projectConfigDir } from '../cz-identity.js';
 
 // ============== PATH CONSTANTS ==============
 
-const OPENCODE_CONFIG_DIR = path.join(os.homedir(), '.config', 'opencode');
+// cz_change: was path.join(os.homedir(), '.config', 'opencode').
+const OPENCODE_CONFIG_DIR = configDir();
 const AGENT_DIR = path.join(OPENCODE_CONFIG_DIR, 'agents');
 const COMMAND_DIR = path.join(OPENCODE_CONFIG_DIR, 'commands');
 const SKILL_DIR = path.join(OPENCODE_CONFIG_DIR, 'skills');
-const CONFIG_FILE = path.join(OPENCODE_CONFIG_DIR, 'config.json');
+// cz_change: was 'config.json'. opencode has TWO config layers with divergent
+// filename support:
+//   packages/opencode/src/config/config.ts  loads config.json + opencode.json + opencode.jsonc
+//     (this is what the HTTP handlers use)
+//   packages/core/src/config.ts             loads ONLY opencode.json / opencode.jsonc
+//     (used by the bash tool, compaction, plugins, the file watcher)
+// So a setting written only to config.json is visible to the API but invisible to
+// those core consumers. opencode.json is the one filename BOTH layers read, so
+// that is what we create when no config file exists yet. It also merges LAST in
+// the opencode layer, so it correctly wins over any pre-existing config.json.
+const CONFIG_FILE = path.join(OPENCODE_CONFIG_DIR, 'opencode.json');
 const PROMPT_FILE_PATTERN = /^\{file:(.+)\}$/i;
 
 // ============== SCOPE TYPE CONSTANTS ==============
@@ -145,10 +158,17 @@ function getProjectConfigPath(workingDirectory) {
 
 function getConfigPaths(workingDirectory) {
   return {
+    // cz_change: reordered. config.json used to be FIRST, and
+    // getPrimaryUserConfigPath() returns the first entry that exists -- so on a
+    // machine with a legacy config.json this UI edited a file that only ONE of
+    // opencode's two config layers reads (see CONFIG_FILE above), leaving the
+    // bash tool / compaction / plugins on stale values. opencode.json/.jsonc now
+    // take priority; config.json stays last so an existing one is still READ
+    // (never created -- see CONFIG_FILE).
     userPaths: [
-      path.join(OPENCODE_CONFIG_DIR, 'config.json'),
       path.join(OPENCODE_CONFIG_DIR, 'opencode.json'),
       path.join(OPENCODE_CONFIG_DIR, 'opencode.jsonc'),
+      path.join(OPENCODE_CONFIG_DIR, 'config.json'),
     ],
     projectPath: getProjectConfigPath(workingDirectory),
     // Resolve at call time so OPENCODE_CONFIG changes (and tests) take effect.
@@ -541,12 +561,15 @@ function resolveSkillSearchDirectories(workingDirectory) {
 
   if (workingDirectory) {
     const worktreeRoot = findWorktreeRoot(workingDirectory) || path.resolve(workingDirectory);
+    // cz_change: routed through projectConfigDir(), which is still `.opencode`.
+    // cz-cli renamed only the HOME-level dir; project-level stays `.opencode`.
     const projectDirs = getAncestors(workingDirectory, worktreeRoot)
-      .map((dir) => path.join(dir, '.opencode'));
+      .map((dir) => projectConfigDir(dir));
     projectDirs.forEach(pushDir);
   }
 
-  pushDir(path.join(os.homedir(), '.opencode'));
+  // cz_change: was path.join(os.homedir(), '.opencode') -> ~/.clickzetta.
+  pushDir(homeConfigDir());
 
   const customConfigDir = process.env.OPENCODE_CONFIG_DIR
     ? path.resolve(process.env.OPENCODE_CONFIG_DIR)

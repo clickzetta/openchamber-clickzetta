@@ -41,14 +41,43 @@ describe('checkForUpdates', () => {
   let fetchMock;
   let originalFetch;
 
+  let originalUpdateApiUrl;
+
   beforeEach(() => {
     fetchMock = createFetchMock();
     originalFetch = globalThis.fetch;
     globalThis.fetch = fetchMock;
+    // cz_change: this fork ships NO default update endpoint (see package-manager.js),
+    // so the API branch these cases cover is off unless configured. Configure it
+    // explicitly here -- with the same URL upstream defaulted to, which is what the
+    // fetchMock patterns below match -- so the branch stays under test while
+    // production still never phones home on its own.
+    originalUpdateApiUrl = process.env.OPENCHAMBER_UPDATE_API_URL;
+    process.env.OPENCHAMBER_UPDATE_API_URL = 'https://api.openchamber.dev/v1/update/check';
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
+    if (originalUpdateApiUrl === undefined) delete process.env.OPENCHAMBER_UPDATE_API_URL;
+    else process.env.OPENCHAMBER_UPDATE_API_URL = originalUpdateApiUrl;
+  });
+
+  // cz_change: guards the fork's own default. Without an explicitly configured
+  // endpoint the API must not be contacted at all, and the check must fall back to
+  // npm rather than fail.
+  it('never contacts an update API when none is configured', async () => {
+    delete process.env.OPENCHAMBER_UPDATE_API_URL;
+    fetchMock.when('registry.npmjs.org', {
+      ok: true,
+      json: async () => ({ 'dist-tags': { latest: '1.9.10' } }),
+    });
+
+    const result = await checkForUpdates({ currentVersion: '1.9.10' });
+
+    expect(result.available).toBe(false);
+    for (const call of fetchMock.mock.calls) {
+      expect(String(call[0])).not.toContain('api.openchamber.dev');
+    }
   });
 
   // --- Scenario: API says update available, npm confirms ---

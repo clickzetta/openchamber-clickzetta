@@ -1,8 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+// cz_change: agent-runtime data dir is ~/.local/share/clickzetta, not .../opencode.
+import { dataDir } from '../cz-identity.js';
 
-const OPENCODE_DATA_DIR = path.join(os.homedir(), '.local', 'share', 'opencode');
+// cz_change: was path.join(os.homedir(), '.local', 'share', 'opencode').
+// cz-cli isolates its global dirs from a real opencode install, so reading
+// opencode's auth.json here found nothing and every provider read as
+// unauthenticated. `os`/`path` stay imported: used elsewhere in this file.
+const OPENCODE_DATA_DIR = dataDir();
 const AUTH_FILE = path.join(OPENCODE_DATA_DIR, 'auth.json');
 
 function readAuthFile() {

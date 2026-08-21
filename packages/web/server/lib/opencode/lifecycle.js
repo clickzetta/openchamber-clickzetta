@@ -4,6 +4,8 @@ import { stripAppImageArgv0Leak } from '../inherited-env.js';
 import { registerManagedProcess, unregisterManagedProcess, reapOrphanedProcesses } from './managed-process-registry.js';
 import { applyProviderEnvAliases } from './provider-env-aliases.js';
 import { recordStartupPerformance } from './startup-performance.js';
+// cz_change: ClickZetta product-identity shim.
+import { DEFAULT_CLI_BINARY } from '../cz-identity.js';
 
 const parsePositiveInt = (value, fallback) => {
   const parsed = Number.parseInt(String(value ?? ''), 10);
@@ -341,7 +343,11 @@ export const createOpenCodeLifecycleRuntime = (deps) => {
   };
 
   const createManagedOpenCodeServerProcess = async ({ hostname, port, timeout, cwd, env: processEnv, shellEnvKeysCount = 0 }) => {
-    let binary = (process.env.OPENCODE_BINARY || 'opencode').trim() || 'opencode';
+    // cz_change: default agent-runtime binary is cz-cli, not opencode.
+    // OPENCODE_BINARY still overrides, and the spawn args below ('serve',
+    // '--hostname', '--port') are accepted verbatim by cz-cli -- `serve` is in
+    // its RUNTIME_COMMANDS pass-through set and takes no profile gate.
+    let binary = (process.env.OPENCODE_BINARY || DEFAULT_CLI_BINARY).trim() || DEFAULT_CLI_BINARY;
     const sourceBinary = binary;
     let args = ['serve', '--hostname', hostname, '--port', String(port)];
     let launchWrapperType = null;

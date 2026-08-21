@@ -208,7 +208,8 @@ export type DesktopSettings = {
   // Opt-in to send anonymous usage reports for update checks (default: true)
   reportUsage?: boolean;
 
-  // Global behavior prompt — synced to ~/.config/opencode/AGENTS.md
+  // cz_change: synced to ~/.config/clickzetta/AGENTS.md (cz-cli config root).
+  // Global behavior prompt
   globalBehaviorPrompt?: string;
   responseStyleEnabled?: boolean;
   responseStylePreset?: 'concise' | 'detailed' | 'mentor' | 'pushback' | 'noFiller' | 'matchEnergy' | 'warmPeer' | 'custom';

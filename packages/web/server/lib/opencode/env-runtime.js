@@ -280,7 +280,8 @@ export const createOpenCodeEnvRuntime = (deps) => {
   };
 
   const bundledOpenCodeCliCandidates = () => {
-    const names = process.platform === 'win32' ? ['opencode.exe'] : ['opencode'];
+    // cz_change: prefer cz-cli; keep opencode as fallback.
+    const names = process.platform === 'win32' ? ['cz-cli.exe', 'opencode.exe'] : ['cz-cli', 'opencode'];
     const roots = [
       process.env.OPENCHAMBER_BUNDLED_OPENCODE_CLI_DIR,
       typeof process.resourcesPath === 'string' ? path.join(process.resourcesPath, 'opencode-cli') : null,
@@ -372,7 +373,8 @@ export const createOpenCodeEnvRuntime = (deps) => {
     const bundled = bundledOpenCodeCliFallback();
     if (bundled) return bundled;
 
-    const resolvedFromPath = searchPathFor('opencode');
+    // cz_change: prefer cz-cli on PATH; fall back to opencode.
+    const resolvedFromPath = searchPathFor('cz-cli') || searchPathFor('opencode');
     if (resolvedFromPath) {
       clearWslOpencodeResolution();
       state.resolvedOpencodeBinarySource = 'path';
@@ -381,6 +383,11 @@ export const createOpenCodeEnvRuntime = (deps) => {
 
     const home = resolveHomeDir();
     const unixFallbacks = [
+      // cz_change: cz-cli install locations first, upstream opencode after.
+      path.join(home, '.clickzetta', 'bin', 'cz-cli'),
+      path.join(home, '.bun', 'bin', 'cz-cli'),
+      path.join(home, '.local', 'bin', 'cz-cli'),
+      path.join(home, 'bin', 'cz-cli'),
       path.join(home, '.opencode', 'bin', 'opencode'),
       path.join(home, '.bun', 'bin', 'opencode'),
       path.join(home, '.local', 'bin', 'opencode'),

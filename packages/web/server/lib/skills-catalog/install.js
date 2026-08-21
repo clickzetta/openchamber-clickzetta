@@ -4,13 +4,16 @@ import path from 'path';
 
 import { assertGitAvailable, looksLikeAuthError, runGit } from './git.js';
 import { parseSkillRepoSource } from './source.js';
+// cz_change: ClickZetta product-identity shim.
+import { configDir } from '../cz-identity.js';
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
 
 function normalizeUserSkillDir(userSkillDir) {
   if (!userSkillDir) return null;
-  const legacySkillDir = path.join(os.homedir(), '.config', 'opencode', 'skill');
-  const pluralSkillDir = path.join(os.homedir(), '.config', 'opencode', 'skills');
+  // cz_change: global skill install target is ~/.config/clickzetta.
+  const legacySkillDir = path.join(configDir(), 'skill');
+  const pluralSkillDir = path.join(configDir(), 'skills');
   if (userSkillDir === legacySkillDir) {
     if (fs.existsSync(legacySkillDir) && !fs.existsSync(pluralSkillDir)) return legacySkillDir;
     return pluralSkillDir;

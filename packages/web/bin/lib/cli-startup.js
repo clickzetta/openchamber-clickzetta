@@ -82,7 +82,11 @@ function collectStartupEnv(options = {}) {
   );
 
   if (options.envSnapshot !== false) {
-    const opencodeBinary = process.env.OPENCODE_BINARY || searchPathFor('opencode');
+    // cz_change: look for cz-cli on PATH first, then fall back to opencode so a
+    // machine that only has upstream installed still starts.
+    const opencodeBinary = process.env.OPENCODE_BINARY
+      || searchPathFor('cz-cli')
+      || searchPathFor('opencode');
     if (typeof opencodeBinary === 'string' && opencodeBinary.trim().length > 0) {
       env.OPENCODE_BINARY = opencodeBinary.trim();
     }

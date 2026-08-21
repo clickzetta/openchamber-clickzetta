@@ -20,6 +20,8 @@ import {
   getAncestors,
   findWorktreeRoot,
 } from './shared.js';
+// cz_change: ClickZetta product-identity shim.
+import { homeConfigDir } from '../cz-identity.js';
 
 const BUILT_IN_SKILL_LOCATION = '<built-in>';
 
@@ -179,7 +181,8 @@ function discoverSkills(workingDirectory) {
   }
 
   const configDirectories = resolveSkillSearchDirectories(workingDirectory);
-  const homeOpencodeDir = path.resolve(path.join(os.homedir(), '.opencode'));
+  // cz_change: was os.homedir()/.opencode -> ~/.clickzetta (cz-cli home config dir).
+  const homeOpencodeDir = path.resolve(homeConfigDir());
   const customConfigDir = process.env.OPENCODE_CONFIG_DIR
     ? path.resolve(process.env.OPENCODE_CONFIG_DIR)
     : null;
@@ -622,8 +625,10 @@ function getManagedSkillRoots(workingDirectory) {
 
   pushRoot(SKILL_DIR);
   pushRoot(path.join(OPENCODE_CONFIG_DIR, 'skill'));
-  pushRoot(path.join(os.homedir(), '.opencode', 'skills'));
-  pushRoot(path.join(os.homedir(), '.opencode', 'skill'));
+  // cz_change: home-level skill roots move to ~/.clickzetta; project-level
+  // `.opencode` reads below are correct for cz-cli and stay untouched.
+  pushRoot(path.join(homeConfigDir(), 'skills'));
+  pushRoot(path.join(homeConfigDir(), 'skill'));
   pushRoot(path.join(os.homedir(), '.claude', 'skills'));
   pushRoot(path.join(os.homedir(), '.agents', 'skills'));
 

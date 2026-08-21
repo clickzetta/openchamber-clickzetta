@@ -19,7 +19,18 @@ let cachedDetectedPm = null;
 function getSpawnSyncBaseOptions() {
   return process.platform === 'win32' ? { windowsHide: true } : {};
 }
-const UPDATE_CHECK_URL = process.env.OPENCHAMBER_UPDATE_API_URL || 'https://api.openchamber.dev/v1/update/check';
+// cz_change: upstream defaulted this to 'https://api.openchamber.dev/v1/update/check'
+// and POSTed a payload containing a persistent installId plus platform/arch/
+// deviceClass to that third party on every check. A ClickZetta-branded build must
+// not phone home to OpenChamber's servers, so there is NO default endpoint now:
+// checkForUpdatesFromApi() short-circuits unless OPENCHAMBER_UPDATE_API_URL is set
+// explicitly (point it at our own update service to re-enable).
+//
+// Read at ACCESS time, not module load: a module-load snapshot is invisible to
+// anything that sets the variable after import (the tests that cover this branch,
+// and any embedder that configures it during startup) -- the same failure mode
+// cz-cli hit with opencode's Flag object.
+const updateCheckUrl = () => process.env.OPENCHAMBER_UPDATE_API_URL || '';
 
 function getOpenChamberConfigDir() {
   if (process.platform === 'win32') {
@@ -121,6 +132,12 @@ async function resolveAndroidApkUrl(version, candidateUrl) {
 }
 
 async function checkForUpdatesFromApi(currentVersion, options = {}) {
+  // cz_change: no endpoint configured -> no request at all. Returning null is the
+  // same value every existing failure path returns (non-ok response, malformed
+  // body, older remote version), so callers already treat it as "no update
+  // available" and no UI branch needs to change.
+  const endpoint = updateCheckUrl();
+  if (!endpoint) return null;
   try {
     const appType = normalizeAppType(options.appType);
     const hostPlatform = mapPlatform(process.platform);
@@ -141,7 +158,7 @@ async function checkForUpdatesFromApi(currentVersion, options = {}) {
       reportUsage,
     };
 
-    const response = await fetch(UPDATE_CHECK_URL, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         Accept: 'application/json',

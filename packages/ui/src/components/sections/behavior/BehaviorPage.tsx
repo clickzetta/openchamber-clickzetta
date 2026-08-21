@@ -30,7 +30,10 @@ import {
   SETTINGS_SELECT_SIZE,
 } from '@/components/sections/shared/SettingsSection';
 
-const AGENTS_MD_PATH = '~/.config/opencode/AGENTS.md';
+// cz_change: user-visible path shown on the Behavior settings page. cz-cli's
+// global config root is ~/.config/clickzetta (core/src/global.ts app rename), so
+// the old string pointed users at a directory the agent never reads.
+const AGENTS_MD_PATH = '~/.config/clickzetta/AGENTS.md';
 
 const readApiError = async (response: Response, fallback: string) => {
   const data = await response.json().catch(() => null) as { error?: unknown } | null;

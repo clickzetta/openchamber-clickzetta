@@ -8,6 +8,8 @@ import {
   writeConfig,
 } from './shared.js';
 import { isPathSpec } from './plugin-spec.js';
+// cz_change: ClickZetta product-identity shim.
+import { configDir } from '../cz-identity.js';
 
 const PLUGIN_FILE_NAME_PATTERN = /^[a-z0-9][a-z0-9-_.]*\.(js|ts|mjs|cjs)$/;
 
@@ -71,7 +73,8 @@ function getActiveOpencodeConfigDir() {
   if (customConfigPath) {
     return path.dirname(path.resolve(customConfigPath));
   }
-  return path.join(os.homedir(), '.config', 'opencode');
+  // cz_change: was path.join(os.homedir(), '.config', 'opencode').
+  return configDir();
 }
 
 function getActiveUserConfigPaths() {

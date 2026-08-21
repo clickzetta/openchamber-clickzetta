@@ -141,8 +141,9 @@ export type AgentWithExtras = Agent & {
 };
 
 /** Parse the subfolder group name from an agent file path.
- *  e.g. "~/.config/opencode/agents/business/ceo.md" → "business"
- *  e.g. "~/.config/opencode/agents/ceo.md"          → undefined
+ *  cz_change: examples use cz-cli's config root (~/.config/clickzetta).
+ *  e.g. "~/.config/clickzetta/agents/business/ceo.md" → "business"
+ *  e.g. "~/.config/clickzetta/agents/ceo.md"          → undefined
  */
 function parseAgentGroup(path: string | null | undefined): string | undefined {
   if (!path) return undefined;

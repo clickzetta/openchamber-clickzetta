@@ -83,8 +83,9 @@ export interface DiscoveredSkill {
 }
 
 /** Parse the domain group folder from a skill file path.
- *  e.g. "~/.config/opencode/skills/automation-ai/ai-production/SKILL.md" → "automation-ai"
- *  e.g. "~/.config/opencode/skills/theme-system/SKILL.md"                → undefined (flat)
+ *  cz_change: examples use cz-cli's config root (~/.config/clickzetta).
+ *  e.g. "~/.config/clickzetta/skills/automation-ai/ai-production/SKILL.md" → "automation-ai"
+ *  e.g. "~/.config/clickzetta/skills/theme-system/SKILL.md"                → undefined (flat)
  */
 function parseSkillGroup(path: string): string | undefined {
   const normalizedPath = path.replace(/\\/g, '/');

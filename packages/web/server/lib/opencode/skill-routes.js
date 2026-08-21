@@ -1,5 +1,7 @@
 import { createOpencodeClient } from '@opencode-ai/sdk/v2';
 import { buildDeferredRestartResponse } from './config-mutation-response.js';
+// cz_change: ClickZetta product-identity shim.
+import { configDir, homeConfigDir } from '../cz-identity.js';
 
 /**
  * Matches how OpenCode reads its own boolean env flags: any value other than
@@ -110,8 +112,9 @@ export const registerSkillRoutes = (app, dependencies) => {
     }
 
     const userRoots = [
-      path.join(home, '.config', 'opencode'),
-      path.join(home, '.opencode'),
+      // cz_change: were path.join(home, '.config'|'', 'opencode'|'.opencode').
+      configDir(),
+      homeConfigDir(),
       path.join(home, '.claude', 'skills'),
       path.join(home, '.agents', 'skills'),
       process.env.OPENCODE_CONFIG_DIR ? path.resolve(process.env.OPENCODE_CONFIG_DIR) : null,

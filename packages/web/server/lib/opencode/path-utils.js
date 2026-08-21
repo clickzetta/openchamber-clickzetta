@@ -26,6 +26,8 @@ const TOOLCHAIN_BASENAMES = new Set([
   '.fnm',
   '.local',
   '.opencode',
+  // cz_change: cz-cli's home dir is a user-configured-PATH signal too.
+  '.clickzetta',
   'node_modules',
 ]);
 

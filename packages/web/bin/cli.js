@@ -160,14 +160,28 @@ async function checkOpenCodeCLI(onNotice) {
     }
   }
 
-  const resolvedFromPath = searchPathFor('opencode');
+  // cz_change: look for cz-cli first, then fall back to opencode so a machine
+  // that only has upstream installed still starts.
+  //
+  // This was the LOAD-BEARING miss. checkOpenCodeCLI() does not merely report a
+  // path -- it STAMPS process.env.OPENCODE_BINARY, and that env var is the first
+  // thing server/lib/opencode/env-runtime.js resolveOpencodeCliPath() consults,
+  // ahead of every cz-cli preference further down it. So on any machine where
+  // ~/.opencode/bin precedes ~/.local/bin on PATH (the default when both CLIs are
+  // installed, since the opencode installer prepends its own dir), this line
+  // pinned upstream opencode as an explicit override and the whole adaptation
+  // silently drove the wrong engine: no data_engineer agent, no cz skills, no
+  // gateway providers -- just an OpenCode Zen provider list. The two sibling
+  // lookups (bin/lib/cli-startup.js, env-runtime.js) were already cz-first;
+  // this one is reached by `serve --foreground` via commands-serve.js.
+  const resolvedFromPath = searchPathFor('cz-cli') || searchPathFor('opencode');
   if (resolvedFromPath) {
     process.env.OPENCODE_BINARY = resolvedFromPath;
     return resolvedFromPath;
   }
 
   throw new Error(
-    `Unable to locate the opencode CLI on PATH (${process.env.PATH || '<empty>'}). ` +
+    `Unable to locate the cz-cli CLI on PATH (${process.env.PATH || '<empty>'}). ` +
     'Ensure the CLI is installed and reachable, or set OPENCODE_BINARY to its full path.'
   );
 }

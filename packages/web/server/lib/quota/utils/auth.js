@@ -1,9 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+// cz_change: quota credential lookup must use cz-cli's dirs, not opencode's.
+import { configDir, dataDir } from '../../cz-identity.js';
 
-const OPENCODE_CONFIG_DIR = path.join(os.homedir(), '.config', 'opencode');
-const OPENCODE_DATA_DIR = path.join(os.homedir(), '.local', 'share', 'opencode');
+// cz_change: were path.join(os.homedir(), '.config'|'.local/share', 'opencode').
+const OPENCODE_CONFIG_DIR = configDir();
+const OPENCODE_DATA_DIR = dataDir();
 
 export const ANTIGRAVITY_ACCOUNTS_PATHS = [
   path.join(OPENCODE_CONFIG_DIR, 'antigravity-accounts.json'),

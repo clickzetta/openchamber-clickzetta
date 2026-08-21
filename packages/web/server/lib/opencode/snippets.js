@@ -2,8 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import yaml from 'yaml';
+// cz_change: ClickZetta product-identity shim.
+import { configDir } from '../cz-identity.js';
 
-const OPENCODE_CONFIG_DIR = path.join(os.homedir(), '.config', 'opencode');
+// cz_change: was path.join(os.homedir(), '.config', 'opencode').
+const OPENCODE_CONFIG_DIR = configDir();
 const GLOBAL_SNIPPET_DIR = path.join(OPENCODE_CONFIG_DIR, 'snippet');
 const GLOBAL_SNIPPET_DIR_ALT = path.join(OPENCODE_CONFIG_DIR, 'snippets');
 const SNIPPET_EXTENSION = '.md';
